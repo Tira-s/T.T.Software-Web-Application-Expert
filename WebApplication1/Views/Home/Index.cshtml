@@ -1,0 +1,199 @@
+﻿@model IEnumerable<WebApplication1.Models.MockData>
+
+@{
+    ViewData["Title"] = "Employee List";
+}
+
+@{
+    if (!string.IsNullOrEmpty(ViewBag.alertmsg))
+    {
+        <script type="text/javascript">
+            alert("@Html.Raw(ViewBag.alertmsg)")
+        </script>
+    }
+}
+    @section Scripts{
+    <script>
+        $(document).ready(function () {
+            $("#customerDatatable").DataTable({
+               ajax: {
+                    url: 'Home/GetMockData',
+                    dataSrc: 'data'
+                },
+                columns: [
+                    {
+                        data: null, render: function (data, type, row) {
+                            // Combine the first and last names into a single table field
+                            return  `<button type="button" class="" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                                            <i class="bi bi-pencil-square" onclick="HandleEdit(${data.runningNumber})"></i>
+                                    </button>`
+                        }
+                    },
+                    { data: 'hn'},
+                    { data: 'firstName' },
+                    { data: 'lastName' },
+                    { data: 'phone' },
+                    { data: 'email' },
+                ]
+            });
+
+
+            
+        });
+        
+        async function HandleEdit(data){
+            $(`#form-edit`).empty()
+
+            const result = await $.ajax(
+            {
+                url: "Home/GetMockData/" + data,
+            });
+
+            if(result != null){
+                var html = "";
+                const runningNumber = result.data[0].runningNumber;
+                const Hn = result.data[0].hn;
+                const firstName = result.data[0].firstName;
+                const lastName = result.data[0].lastName;
+                const phone = result.data[0].phone;
+                const email = result.data[0].email;
+                html = `<form action="/Home/Save" method="POST">
+                            <div class="modal-header" style="border-bottom: 1px solid green">
+                                <h2 class="modal-title" id="staticBackdropLabel">เจ้าของ</h2>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                    <div class="row mb-3 align-items-center">
+                                        <div class="col-1">
+                                            <label class="form-lable">Hn</label>
+                                        </div>
+                                        <div class="col-3">
+                                            <label class="form-lable">${Hn}</label>
+                                            <input class="form-control" type="hidden" name="Hn" value="${Hn}"/>
+                                        </div>
+                                        <div class="col-1">
+                                            <label class="form-lable">ชื่อ</label>
+                                        </div>
+                                        <div class="col-3">
+                                            <input class="form-control" type="text" name="fName" required value="${firstName}"/>
+                                        </div>
+                                        <div class="col-1">
+                                            <label>นามสกุล</label>
+                                        </div>
+                                        <div class="col-3">
+                                            <input class="form-control" type="text" name="lName" required value="${lastName}"/>
+                                        </div>
+                                    </div>
+                                    <div class="row align-items-center">
+                                            <div class="col-1">
+                                            <label class="form-lable">เบอร์โทร</label>
+                                        </div>
+                                        <div class="col-3">
+                                            <input class="form-control" type="tel" name="Phone" required value="${phone}"/>
+                                        </div>
+                                        <div class="col-1">
+                                            <label class="form-lable">Email</label>
+                                        </div>
+                                        <div class="col-3">
+                                            <input class="form-control" type="email" name="Email" required value="${email}"/>
+                                        </div>
+                                    </div>
+                            </div>
+                            <div class="modal-footer justify-content-center" style="border-top: 1px solid green">
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal"><i class="bi bi-backspace-fill text-ligth"></i> Cancel</button>
+                                <button type="submit" class="btn btn-primary"> <i class="bi bi-file-earmark-plus-fill text-ligth"></i> Save</button>
+                                <a href="/Home/Delete/${Hn}" class="btn btn-danger"><i class="bi bi-x text-ligth"></i> Delete</a>
+                            </div>
+                        </form>`
+                const append = await appendhtml(html)
+            }
+        }
+
+        async function appendhtml(html){
+            if(html != ""){
+               return  $(`#form-edit`).append(html)
+            }
+        }
+    </script>
+}
+<h1>ค้นหาเจ้าของ</h1>
+
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#staticBackdrop2">
+    Add
+</button>
+<div class="container">
+    <div class="table-responsive">
+        <table id="customerDatatable" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Hn</th>
+                    <th>FirstName</th>
+                    <th>LastName</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade bd-example-modal-xl" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content" id="form-edit">
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade bd-example-modal-xl" id="staticBackdrop2" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <form action="/Home/CreateNew" method="POST">
+                <div class="modal-header" style="border-bottom: 1px solid green">
+                    <h2 class="modal-title" id="staticBackdropLabel">
+                        เจ้าของ
+                    </h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-1">
+                            <label class="form-lable">ชื่อ</label>
+                        </div>
+                        <div class="col-3">
+                            <input class="form-control" type="text" name="fName" required value="" />
+                        </div>
+                        <div class="col-1">
+                            <label>นามสกุล</label>
+                        </div>
+                        <div class="col-3">
+                            <input class="form-control" type="text" name="lName" required value="" />
+                        </div>
+                    </div>
+                    <div class="row align-items-center">
+                        <div class="col-1">
+                            <label class="form-lable">เบอร์โทร</label>
+                        </div>
+                        <div class="col-3">
+                            <input class="form-control" type="tel" name="Phone" required value="" />
+                        </div>
+                        <div class="col-1">
+                            <label class="form-lable">Email</label>
+                        </div>
+                        <div class="col-3">
+                            <input class="form-control" type="email" name="Email" required value="" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-center" style="border-top: 1px solid green">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"><i class="bi bi-backspace-fill text-ligth"></i> Cancel</button>
+                    <button type="submit" class="btn btn-primary"> <i class="bi bi-file-earmark-plus-fill text-ligth"></i> Save</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
